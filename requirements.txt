@@ -1,5 +1,6 @@
 Flask==3.0.3
 pillow==10.4.0
+numpy==2.1.1
 zxing-cpp==2.2.0
 requests==2.32.3
 gunicorn==22.0.0
