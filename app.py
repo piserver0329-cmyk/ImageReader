@@ -18,37 +18,43 @@ log = logging.getLogger("barcode")
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
 
-
 def decode_barcodes(raw: bytes, max_dim: int) -> list[dict]:
-    """Decode every barcode/QR found in one image."""
     with Image.open(io.BytesIO(raw)) as im:
         im.load()
         im = ImageOps.exif_transpose(im)
 
-        # Downscale huge images (never upscale); grayscale helps the detector + RAM
+        # 1-D barcodes need bar resolution — don't shrink as hard as for QR
         im.thumbnail((max_dim, max_dim), Image.LANCZOS)
         if im.mode != "L":
             im = im.convert("L")
 
-        results = zxingcpp.read_barcodes(im)
+        results = zxingcpp.read_barcodes(
+            im,
+            formats=zxingcpp.BarcodeFormat.Code39
+                    | zxingcpp.BarcodeFormat.Code128
+                    | zxingcpp.BarcodeFormat.ITF
+                    | zxingcpp.BarcodeFormat.EAN13
+                    | zxingcpp.BarcodeFormat.QRCode,
+            try_rotate=True,
+            try_downscale=True,
+            try_invert=True,
+        )
 
     out = []
     for r in results:
-        pos = r.position
+        p = r.position
         out.append({
             "text": r.text,
             "format": str(r.format),
-            "content_type": str(r.content_type),
             "orientation_deg": r.orientation,
             "position": {
-                "top_left":     [pos.top_left.x, pos.top_left.y],
-                "top_right":    [pos.top_right.x, pos.top_right.y],
-                "bottom_right": [pos.bottom_right.x, pos.bottom_right.y],
-                "bottom_left":  [pos.bottom_left.x, pos.bottom_left.y],
+                "top_left":     [p.top_left.x, p.top_left.y],
+                "top_right":    [p.top_right.x, p.top_right.y],
+                "bottom_right": [p.bottom_right.x, p.bottom_right.y],
+                "bottom_left":  [p.bottom_left.x, p.bottom_left.y],
             },
         })
     return out
-
 
 @app.before_request
 def auth():

@@ -9,4 +9,4 @@ services:
       - key: API_KEY
         generateValue: true
       - key: MAX_DIMENSION
-        value: "2500"
+        value: "3500"
