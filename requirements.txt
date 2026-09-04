@@ -1,0 +1,4 @@
+Flask==3.0.3
+pillow==10.4.0
+zxing-cpp==2.2.0
+gunicorn==22.0.0

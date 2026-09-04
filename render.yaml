@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: barcode-decoder
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 1 --threads 2 --timeout 60 --max-requests 500 --max-requests-jitter 50
+    envVars:
+      - key: API_KEY
+        generateValue: true
+      - key: MAX_DIMENSION
+        value: "2500"
